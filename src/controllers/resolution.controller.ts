@@ -5,7 +5,14 @@ import { ResolutionService } from '@src/services/resolution.service';
 import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
 
 export async function submitResolution(req: Request, res: Response) {
-  const { email, matricule, matiere, activite_id, reponses_qcm, reponses_tp } = req.body;
+  const { email, matricule, matiere, activite_id, reponses_qcm, reponses_tp } = req.body as {
+    email: string;
+    matricule: string;
+    matiere: string;
+    activite_id: string;
+    reponses_qcm: any[];
+    reponses_tp: any[];
+  };
 
   // 1. Récupérer l'activité liée
   const activite = await Activite.findById(activite_id);
@@ -13,7 +20,7 @@ export async function submitResolution(req: Request, res: Response) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Activité non trouvée' });
   }
 
-  // 2. Créer la résolution (temporaire pour le calcul si besoin, ou directement)
+  // 2. Créer la résolution
   const resolution = new Resolution({
     email,
     matricule,

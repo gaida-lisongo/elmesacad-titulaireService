@@ -8,7 +8,13 @@ import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
  * Point d'entrée pour le scan QR Code par l'étudiant
  */
 export async function checkPresence(req: Request, res: Response) {
-  const { matricule, email, seanceRef, latitude, longitude } = req.body;
+  const { matricule, email, seanceRef, latitude, longitude } = req.body as {
+    matricule: string;
+    email: string;
+    seanceRef: string;
+    latitude: number;
+    longitude: number;
+  };
 
   const seance = await Seance.findById(seanceRef);
   if (!seance) {
@@ -63,6 +69,6 @@ export async function getPresencesBySeance(req: Request, res: Response) {
  */
 export async function updatePresence(req: Request, res: Response) {
   const { id } = req.params;
-  const updated = await Presence.findByIdAndUpdate(id, req.body, { new: true });
+  const updated = await Presence.findByIdAndUpdate(id, req.body as object, { new: true });
   return res.status(HttpStatusCodes.OK).json(updated);
 }

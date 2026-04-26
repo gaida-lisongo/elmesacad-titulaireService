@@ -25,7 +25,7 @@ export class PresenceService {
    * Détermine le statut de présence en fonction de l'heure et de la localisation
    */
   public static determinerStatut(
-    seance: any,
+    seance: { heure_debut: string; date: string | number | Date },
     lat: number,
     lon: number,
     now: Date = new Date()
@@ -45,7 +45,7 @@ export class PresenceService {
     // On suppose heure_debut au format "HH:mm"
     const [heures, minutes] = seance.heure_debut.split(':').map(Number);
     const debutSeance = new Date(seance.date);
-    debutSeance.setHours(heures, minutes, 0);
+    debutSeance.setHours(heures || 0, minutes || 0, 0);
 
     const diffMinutes = (now.getTime() - debutSeance.getTime()) / (1000 * 60);
 

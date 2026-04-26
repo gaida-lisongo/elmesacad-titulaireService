@@ -1,38 +1,43 @@
 import { Request, Response } from 'express';
-import { Notes, INotes } from '@src/models/Notes';
-import { NoteManager, NotesEtudiant, SemestreNote, UniteNote, ElementNote } from '@src/services/note.manager';
+import { Notes } from '@src/models/Notes';
+import { NoteManager, NotesEtudiant, SemestreNote } from '@src/services/note.manager';
 import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
 
+interface NoteRaw {
+  studentId: string;
+  studentName: string;
+  matricule: string;
+  cc: number;
+  examen: number;
+  rattrapage: number;
+  rachat: number;
+  semestre: { reference: string; designation: string; credit: number };
+  unite: { reference: string; code: string; designation: string; credit: number };
+  matiere: { reference: string; designation: string; credit: number };
+}
+
 export async function addNote(req: Request, res: Response) {
-  const note = new Notes(req.body);
+  const note = new Notes(req.body as object);
   await note.save();
   return res.status(HttpStatusCodes.CREATED).json(note);
 }
 
 export async function getStudentNotes(req: Request, res: Response) {
   const { matricule } = req.params;
-  
-  // Utilisation de lean() pour la lecture simple
   const notes = await Notes.find({ matricule }).lean();
 
   if (notes.length === 0) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Aucune note trouvée pour ce matricule' });
   }
 
-  return res.status(HttpStatusCodes.OK).json(formatToNotesEtudiant(notes));
+  return res.status(HttpStatusCodes.OK).json(formatToNotesEtudiant(notes as unknown as NoteRaw[]));
 }
 
 export async function getNotesByCourse(req: Request, res: Response) {
   const { courseRef } = req.params;
   
-  /**
-   * OPTIMISATION ULTIME : Agrégation MongoDB 100% Native
-   * On construit toute la hiérarchie (Semestres -> Unités -> Éléments) 
-   * directement dans le moteur MongoDB pour éviter tout calcul JS.
-   */
   const results = await Notes.aggregate([
     { $match: { 'matiere.reference': courseRef } },
-    // 1. Grouper par étudiant + semestre + unité pour collecter les éléments (matières)
     {
       $group: {
         _id: {
@@ -57,7 +62,6 @@ export async function getNotesByCourse(req: Request, res: Response) {
         }
       }
     },
-    // 2. Grouper par étudiant + semestre pour collecter les unités
     {
       $group: {
         _id: {
@@ -78,7 +82,6 @@ export async function getNotesByCourse(req: Request, res: Response) {
         }
       }
     },
-    // 3. Grouper final par étudiant pour collecter les semestres
     {
       $group: {
         _id: "$_id.matricule",
@@ -105,10 +108,7 @@ export async function getNotesByCourse(req: Request, res: Response) {
   return res.status(HttpStatusCodes.OK).json(results);
 }
 
-/**
- * Helper optimisé pour formater une liste de notes
- */
-function formatToNotesEtudiant(notes: any[]): NotesEtudiant {
+function formatToNotesEtudiant(notes: NoteRaw[]): NotesEtudiant {
   const firstNote = notes[0];
   const notesEtudiant: NotesEtudiant = {
     studentId: firstNote.studentId,
@@ -160,18 +160,18 @@ function formatToNotesEtudiant(notes: any[]): NotesEtudiant {
 
 export async function getStudentResult(req: Request, res: Response) {
   const { matricule } = req.params;
-  const notes = await Notes.find({ matricule });
+  const notes = await Notes.find({ matricule }).lean();
 
   if (notes.length === 0) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Aucune note trouvée' });
   }
 
-  const notesEtudiant = formatToNotesEtudiant(notes);
+  const notesEtudiant = formatToNotesEtudiant(notes as unknown as NoteRaw[]);
   const resultat = NoteManager.calculerResultatEtudiant(notesEtudiant);
   return res.status(HttpStatusCodes.OK).json(resultat);
 }
 
 export async function getAllNotes(_: Request, res: Response) {
-  const notes = await Notes.find();
+  const notes = await Notes.find().lean();
   return res.status(HttpStatusCodes.OK).json(notes);
 }

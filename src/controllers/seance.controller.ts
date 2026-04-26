@@ -21,7 +21,7 @@ export async function getSeancesByCharge(req: Request, res: Response) {
 
 export async function updateSeance(req: Request, res: Response) {
   const { id } = req.params;
-  const updated = await Seance.findByIdAndUpdate(id, req.body, { new: true });
+  const updated = await Seance.findByIdAndUpdate(id, req.body as object, { new: true });
   if (!updated) return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Séance non trouvée' });
   return res.status(HttpStatusCodes.OK).json(updated);
 }

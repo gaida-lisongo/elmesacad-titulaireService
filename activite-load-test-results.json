@@ -1,0 +1,16 @@
+{
+  "timestamp": "2026-04-26T09:08:39.412Z",
+  "metrics": {
+    "activites": {
+      "success": 50,
+      "fail": 0,
+      "duration": 1684
+    },
+    "resolutions": {
+      "success": 1000,
+      "fail": 0,
+      "duration": 18566,
+      "totalScore": 14930
+    }
+  }
+}

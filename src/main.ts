@@ -1,20 +1,8 @@
 import logger from 'jet-logger';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-import path from 'path';
-
-// Load .env from root
-dotenv.config();
 
 import EnvVars from './common/constants/env';
 import server from './server';
-
-/******************************************************************************
-                                Constants
-******************************************************************************/
-
-const SERVER_START_MESSAGE =
-  'Express server started on port: ' + EnvVars.Port.toString();
 
 /******************************************************************************
                                   Run
@@ -31,7 +19,8 @@ mongoose.connect(mongoUri)
       logger.info('Express server started on port: ' + port.toString());
     });
   })
-  .catch((err) => {
-    logger.err('MongoDB connection error: ' + err.message);
+  .catch((err: unknown) => {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    logger.err('MongoDB connection error: ' + message);
   });
 

@@ -4,11 +4,12 @@ import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
 
 export async function addActivite(req: Request, res: Response) {
   try {
-    const activite = new Activite(req.body);
+    const activite = new Activite(req.body as object);
     await activite.save();
     return res.status(HttpStatusCodes.CREATED).json(activite);
-  } catch (error) {
-    return res.status(HttpStatusCodes.BAD_REQUEST).json({ error: error.message });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return res.status(HttpStatusCodes.BAD_REQUEST).json({ error: message });
   }
 }
 

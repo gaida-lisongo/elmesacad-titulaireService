@@ -31,12 +31,12 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/src/views ./dist/views
 COPY --from=builder /app/src/public ./dist/public
 
-# Exposer le port configuré (par défaut 3001)
-EXPOSE 3001
+# Exposer le port configuré (par défaut 3000)
+EXPOSE 3000
 
 # Définir les variables d'environnement par défaut
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=3000
 
 # Commande pour démarrer l'application
 CMD ["npm", "run", "start"]

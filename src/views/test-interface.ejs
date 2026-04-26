@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interface de Test - Titulaire Service</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-8">
+            <h1 class="text-2xl font-bold text-gray-800 mb-6">Interface de Test API</h1>
+            
+            <!-- Tabs -->
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                    <button onclick="showTab('charges')" class="tab-btn border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" id="tab-charges">
+                        Charges
+                    </button>
+                    <button onclick="showTab('seances')" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" id="tab-seances">
+                        Séances
+                    </button>
+                    <button onclick="showTab('notes')" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" id="tab-notes">
+                        Notes
+                    </button>
+                    <button onclick="showTab('resolutions')" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" id="tab-resolutions">
+                        Résolutions
+                    </button>
+                    <button onclick="showTab('presence')" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" id="tab-presence">
+                        Scan Présence
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Contents -->
+            <div id="content-charges" class="tab-content">
+                <h2 class="text-lg font-semibold mb-4">Ajouter une Charge Horaire</h2>
+                <form onsubmit="submitForm(event, '/api/charges/add')" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2 font-medium text-sm text-gray-700">Matière</div>
+                        <input type="text" name="matiere[designation]" placeholder="Désignation" class="border p-2 rounded w-full" required>
+                        <input type="text" name="matiere[reference]" placeholder="Référence" class="border p-2 rounded w-full" required>
+                        
+                        <div class="col-span-2 font-medium text-sm text-gray-700">Unité d'Enseignement</div>
+                        <input type="text" name="unite[designation]" placeholder="Désignation Unité" class="border p-2 rounded w-full" required>
+                        <input type="text" name="unite[code_unite]" placeholder="Code Unité" class="border p-2 rounded w-full" required>
+                        <input type="text" name="unite[semestre]" placeholder="Semestre (ex: S1)" class="border p-2 rounded w-full" required>
+                        
+                        <div class="col-span-2 font-medium text-sm text-gray-700">Titulaire</div>
+                        <input type="text" name="titulaire[name]" placeholder="Nom" class="border p-2 rounded w-full" required>
+                        <input type="email" name="titulaire[email]" placeholder="Email" class="border p-2 rounded w-full" required>
+                    </div>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Tester POST</button>
+                </form>
+            </div>
+
+            <div id="content-seances" class="tab-content hidden">
+                <h2 class="text-lg font-semibold mb-4">Ajouter une Séance</h2>
+                <form onsubmit="submitForm(event, '/api/seances/add')" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" name="charge_horaire" placeholder="ID Charge Horaire (ObjectId)" class="border p-2 rounded w-full" required>
+                        <input type="text" name="lecon" placeholder="Leçon" class="border p-2 rounded w-full" required>
+                        <input type="text" name="salle" placeholder="Salle" class="border p-2 rounded w-full" required>
+                        <input type="date" name="date" class="border p-2 rounded w-full" required>
+                    </div>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Tester POST</button>
+                </form>
+            </div>
+
+            <div id="content-notes" class="tab-content hidden">
+                <h2 class="text-lg font-semibold mb-4">Ajouter une Note</h2>
+                <form onsubmit="submitForm(event, '/api/notes/add')" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="col-span-2 font-medium text-sm text-gray-700">Étudiant</div>
+                        <input type="text" name="studentId" placeholder="ID Étudiant" class="border p-2 rounded w-full" required>
+                        <input type="text" name="studentName" placeholder="Nom Étudiant" class="border p-2 rounded w-full" required>
+                        <input type="text" name="matricule" placeholder="Matricule" class="border p-2 rounded w-full" required>
+                        <input type="email" name="email" placeholder="Email" class="border p-2 rounded w-full" required>
+
+                        <div class="col-span-2 font-medium text-sm text-gray-700">Semestre</div>
+                        <input type="text" name="semestre[designation]" placeholder="Désignation Semestre" class="border p-2 rounded w-full" required>
+                        <input type="text" name="semestre[reference]" placeholder="Référence Semestre (_id)" class="border p-2 rounded w-full" required>
+                        <input type="number" name="semestre[credit]" placeholder="Crédits Semestre" class="border p-2 rounded w-full" required>
+
+                        <div class="col-span-2 font-medium text-sm text-gray-700">Unité</div>
+                        <input type="text" name="unite[designation]" placeholder="Désignation Unité" class="border p-2 rounded w-full" required>
+                        <input type="text" name="unite[reference]" placeholder="Référence Unité (_id)" class="border p-2 rounded w-full" required>
+                        <input type="text" name="unite[code]" placeholder="Code Unité" class="border p-2 rounded w-full" required>
+                        <input type="number" name="unite[credit]" placeholder="Crédits Unité" class="border p-2 rounded w-full" required>
+
+                        <div class="col-span-2 font-medium text-sm text-gray-700">Matière</div>
+                        <input type="text" name="matiere[designation]" placeholder="Désignation Matière" class="border p-2 rounded w-full" required>
+                        <input type="text" name="matiere[reference]" placeholder="Référence Matière (_id)" class="border p-2 rounded w-full" required>
+                        <input type="number" name="matiere[credit]" placeholder="Crédits Matière" class="border p-2 rounded w-full" required>
+
+                        <div class="col-span-2 font-medium text-sm text-gray-700">Notes</div>
+                        <input type="number" name="cc" placeholder="Note CC" class="border p-2 rounded w-full" step="0.01">
+                        <input type="number" name="examen" placeholder="Note Examen" class="border p-2 rounded w-full" step="0.01">
+                        <input type="number" name="rattrapage" placeholder="Note Rattrapage" class="border p-2 rounded w-full" step="0.01">
+                        <input type="number" name="rachat" placeholder="Note Rachat" class="border p-2 rounded w-full" step="0.01">
+                    </div>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700">Tester POST</button>
+                </form>
+                
+                <div class="mt-4 p-4 bg-blue-50 rounded border border-blue-200">
+                    <h3 class="text-sm font-medium text-blue-700 mb-2">Actions de lecture :</h3>
+                    <div class="flex space-x-2">
+                        <input type="text" id="read-matricule" placeholder="Matricule" class="border p-1 text-sm rounded">
+                        <button onclick="fetchData('/api/notes/student/' + document.getElementById('read-matricule').value)" class="bg-blue-600 text-white px-3 py-1 text-sm rounded hover:bg-blue-700">Notes Étudiant</button>
+                        <button onclick="fetchData('/api/notes/result/' + document.getElementById('read-matricule').value)" class="bg-green-600 text-white px-3 py-1 text-sm rounded hover:bg-green-700">Résultat Calculé</button>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-4 bg-purple-50 rounded border border-purple-200">
+                    <h3 class="text-sm font-medium text-purple-700 mb-2">Notes par Cours :</h3>
+                    <div class="flex space-x-2">
+                        <input type="text" id="read-course" placeholder="Référence Cours (_id)" class="border p-1 text-sm rounded">
+                        <button onclick="fetchData('/api/notes/course/' + document.getElementById('read-course').value)" class="bg-purple-600 text-white px-3 py-1 text-sm rounded hover:bg-purple-700">Récupérer par Cours</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="content-resolutions" class="tab-content hidden">
+                <!-- ... (contenu existant) ... -->
+            </div>
+
+            <div id="content-presence" class="tab-content hidden">
+                <h2 class="text-lg font-semibold mb-4">Simuler Scan QR Code (Étudiant)</h2>
+                <form onsubmit="submitForm(event, '/api/presences/check')" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <input type="text" name="matricule" placeholder="Matricule Étudiant" class="border p-2 rounded w-full" required>
+                        <input type="email" name="email" placeholder="Email Étudiant" class="border p-2 rounded w-full" required>
+                        <input type="text" name="seanceRef" placeholder="ID Séance (seanceId)" class="border p-2 rounded w-full" required>
+                        <div class="col-span-2 grid grid-cols-2 gap-4">
+                            <input type="number" name="latitude" step="any" placeholder="Ma Latitude" class="border p-2 rounded w-full" required>
+                            <input type="number" name="longitude" step="any" placeholder="Ma Longitude" class="border p-2 rounded w-full" required>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 italic">Note: Le statut 'late' est déclenché après 15 min de retard par rapport à l'heure de début de la séance.</p>
+                    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Valider Présence</button>
+                </form>
+
+                <div class="mt-8 border-t pt-6">
+                    <h2 class="text-lg font-semibold mb-4">Gestion Enseignant</h2>
+                    <div class="flex space-x-2 mb-4">
+                        <input type="text" id="view-seance-id" placeholder="ID Séance" class="border p-2 rounded text-sm">
+                        <button onclick="fetchData('/api/presences/seance/' + document.getElementById('view-seance-id').value)" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Voir les Présents</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Area -->
+            <div class="mt-8 p-4 bg-gray-50 rounded border border-gray-200">
+                <h3 class="text-sm font-medium text-gray-700 mb-2">Résultat de la requête :</h3>
+                <pre id="result" class="text-xs text-gray-600 overflow-auto max-h-64 bg-white p-2 border"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Show selected content
+            document.getElementById('content-' + tabId).classList.remove('hidden');
+            
+            // Update tab styles
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('border-indigo-500', 'text-indigo-600');
+                el.classList.add('border-transparent', 'text-gray-500');
+            });
+            document.getElementById('tab-' + tabId).classList.add('border-indigo-500', 'text-indigo-600');
+            document.getElementById('tab-' + tabId).classList.remove('border-transparent', 'text-gray-500');
+        }
+
+        async function submitForm(event, url) {
+            // ... (reste de la fonction identique)
+        }
+
+        async function fetchData(url) {
+            if (url.endsWith('undefined') || url.endsWith('/')) {
+                alert('Veuillez saisir un matricule');
+                return;
+            }
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                document.getElementById('result').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('result').textContent = 'Erreur: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

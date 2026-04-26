@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-04-26T09:01:47.139Z",
+  "metrics": {
+    "charges": {
+      "success": 50,
+      "fail": 0,
+      "duration": 2877
+    },
+    "seances": {
+      "success": 150,
+      "fail": 0,
+      "duration": 1928
+    },
+    "presences": {
+      "success": 3000,
+      "fail": 0,
+      "duration": 74017
+    }
+  }
+}

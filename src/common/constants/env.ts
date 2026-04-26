@@ -18,7 +18,11 @@ export const NodeEnvs = {
 
 const EnvVars = jetEnv({
   NodeEnv: (v) => tspo.isValue(NodeEnvs, v),
-  Port: num,
+  Port: (v) => (v === undefined ? 3000 : num(v)),
+  MongoUri: String,
+  InbtpLat: (v) => (v === undefined ? -4.331105 : num(v)),
+  InbtpLong: (v) => (v === undefined ? 15.251937 : num(v)),
+  LocationTolerance: (v) => (v === undefined ? 30 : num(v)),
 });
 
 /******************************************************************************

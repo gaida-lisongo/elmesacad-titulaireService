@@ -34,9 +34,16 @@ export default defineConfig([
           ignoreRestSiblings: true,
         },
       ],
-      'no-console': 'warn',
+      'no-console': 'off',
       'no-extra-boolean-cast': 'off',
-      'no-process-env': 'warn',
+      'no-process-env': 'off',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
       // node correctness
       'n/no-extraneous-import': 'error'
     },

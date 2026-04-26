@@ -128,7 +128,7 @@ describe('INBTP Peak Load Performance Test', () => {
     const limit = pLimit(50); // Concurrence augmentée car le serveur est plus rapide
     const count = 500; // Passage à 500 requêtes
     const startTime = Date.now();
-    const samples: any[] = [];
+    const samples: unknown[] = [];
 
     const tasks = Array.from({ length: count }).map((_, i) => {
       const courseRef = COURSE_REFS_POOL[i % COURSE_REFS_POOL.length];

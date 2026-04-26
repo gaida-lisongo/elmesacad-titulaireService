@@ -1,4 +1,3 @@
-import { Seance } from '@src/models/Seance';
 import { IPresence } from '@src/models/Presence';
 import EnvVars from '@src/common/constants/env';
 

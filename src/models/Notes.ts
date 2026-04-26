@@ -27,6 +27,36 @@ export interface INotes extends Document {
   rachat: number;
 }
 
+export interface INotesLean {
+  _id: string;
+  email: string;
+  matricule: string;
+  studentId: string;
+  studentName: string;
+  matiere: {
+    designation: string;
+    reference: string;
+    credit: number;
+  };
+  unite: {
+    designation: string;
+    reference: string;
+    code: string;
+    credit: number;
+  };
+  semestre: {
+    designation: string;
+    reference: string;
+    credit: number;
+  };
+  cc: number;
+  examen: number;
+  rattrapage: number;
+  rachat: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const NotesSchema = new Schema<INotes>({
   email: { type: String, required: true },
   matricule: { type: String, required: true, index: true },

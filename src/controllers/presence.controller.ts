@@ -4,6 +4,12 @@ import { Seance } from '@src/models/Seance';
 import { PresenceService } from '@src/services/presence.service';
 import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
 
+interface SeanceInput {
+  heure_debut: string;
+  date: string | number | Date;
+  lecon: string;
+}
+
 /**
  * Point d'entrée pour le scan QR Code par l'étudiant
  */
@@ -16,7 +22,7 @@ export async function checkPresence(req: Request, res: Response) {
     longitude: number;
   };
 
-  const seance = await Seance.findById(seanceRef);
+  const seance = await Seance.findById(seanceRef) as unknown as SeanceInput | null;
   if (!seance) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ success: false, message: 'Séance non trouvée' });
   }

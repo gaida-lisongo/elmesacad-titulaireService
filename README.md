@@ -1,39 +1,116 @@
-## About
+# Titulaire Service - INBTP
 
-This project was created with [express-generator-typescript](https://github.com/seanpmaxwell/express-generator-typescript).
+Ce microservice gère la partie académique pour les enseignants (titulaires) de l'INBTP, incluant la gestion des charges horaires, des séances, des présences (avec validation géospatiale), des activités (QCM/TP) et des notes.
 
-## Available Scripts
+## 🚀 Installation et Démarrage
 
-### `npm run clean-install`
+### Prérequis
+- Node.js (>= 16.0.0)
+- MongoDB Atlas (ou une instance locale)
 
-Remove the existing `node_modules/` folder, `package-lock.json`, and reinstall all library modules.
+### Configuration
+Créez un fichier `.env` à la racine avec les variables suivantes :
+```env
+PORT=3001
+MONGODB_URI=votre_uri_mongodb
+NODE_ENV=production
 
-### `npm run dev` 
+# Coordonnées INBTP pour la validation des présences
+INBTP_LAT=-4.331105
+INBTP_LONG=15.251937
+LOCATION_TOLERANCE=30 # Tolérance en mètres
+```
 
-Run the server in development with hot reloading and browser refresh (see `package.json` for all `npm run dev` variations)<br/>
+### Commandes
+```bash
+# Installer les dépendances
+npm install
 
-**IMPORTANT** development mode uses `swc` for performance reasons which DOES NOT check for typescript errors. Run `npm run type-check` to check for type errors. NOTE: you should use your IDE to prevent most type errors.
+# Lancer en mode développement (avec auto-reload)
+npm run dev
 
-### `npm test`
+# Compiler pour la production
+npm run build
 
-Run unit-tests with <a href="https://vitest.dev/guide/">vitest</a>.
+# Lancer la version de production
+npm run start
+```
 
-### `npm run lint`
+---
 
-Check for linting errors.
+## 📚 Documentation API
 
-### `npm run build`
+Tous les endpoints sont préfixés par `/api`.
 
-Build the project for production.
+### 1. Gestion des Notes (`/api/notes`)
 
-### `npm start`
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/add` | Ajouter une note pour un étudiant |
+| `GET` | `/student/:matricule` | Récupérer les notes structurées d'un étudiant |
+| `GET` | `/course/:courseRef` | Récupérer les notes structurées par cours (Jury) |
+| `GET` | `/result/:matricule` | Calculer le résultat final (Moyenne, Crédits) |
 
-Run the production build (Must be built first).
+**Exemple de réponse `/student/:matricule` :**
+```json
+{
+  "studentId": "ID-123",
+  "studentName": "Nathan",
+  "matricule": "2026-001",
+  "semestres": [
+    {
+      "designation": "Semestre 1",
+      "unites": [
+        {
+          "code": "UE-INF1",
+          "elements": [
+            { "_id": "MAT-001", "designation": "Algo", "cc": 15, "examen": 12 }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
 
-### `npm run type-check`
+### 2. Séances et Présences (`/api/seances`, `/api/presences`)
 
-Check for typescript errors.
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/seances/add` | Créer une nouvelle séance de cours |
+| `GET` | `/seances/charge/:chargeId` | Lister les séances d'une charge horaire |
+| `POST` | `/presences/check` | **Scan QR Code** (Étudiant) - Validation géo + retard |
+| `GET` | `/presences/seance/:seanceId` | Liste des présences pour une séance (Enseignant) |
 
-## Additional Notes
+**Validation de présence (`POST /api/presences/check`) :**
+- **Payload** : `{ matricule, email, seanceRef, latitude, longitude }`
+- **Logique** : 
+    - Vérifie si l'étudiant est dans un rayon de `LOCATION_TOLERANCE` mètres de l'INBTP.
+    - Marque `late` si le scan a lieu plus de 15 min après le début.
 
-- If `npm run dev` gives you issues with bcrypt on MacOS you may need to run: `npm rebuild bcrypt --build-from-source`.
+### 3. Activités et Résolutions (`/api/activites`, `/api/resolutions`)
+
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/activites/add` | Créer un QCM ou un TP |
+| `POST` | `/resolutions/submit` | Soumettre une réponse (Auto-grading pour QCM) |
+
+---
+
+## 🧪 Tests de Performance
+
+Le service a été optimisé pour supporter de fortes charges (Peak Load) :
+- **Notes** : 13 000 lectures concurrentes (p95 < 200ms).
+- **Présences** : 3 000 scans simultanés gérés nativement par MongoDB (`2dsphere`).
+
+Pour lancer les tests de charge :
+```bash
+npm run test
+```
+
+## 🛠️ Architecture Technique
+- **Stack** : Node.js, Express, TypeScript, Mongoose.
+- **Optimisations** : 
+    - Agrégations MongoDB natives pour les structures de données complexes.
+    - Indexation géospatiale pour les présences.
+    - Utilisation de `.lean()` pour les lectures rapides.

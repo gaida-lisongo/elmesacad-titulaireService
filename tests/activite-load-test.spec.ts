@@ -38,7 +38,8 @@ describe('Activite & Resolution Workflow Load Test', () => {
         unite: { designation: "UE Activite", code_unite: "UE-ACT", semestre: "S1" },
         titulaire: { name: "Prof Activite", email: "prof.act@inbtp.edu" }
       });
-    SAMPLE_CHARGE_ID = chargeRes.body._id;
+    const chargeBody = chargeRes.body as { _id: string };
+    SAMPLE_CHARGE_ID = chargeBody._id;
     
     console.log('🚀 Connected to REAL MongoDB Atlas for Activite Load Testing');
   }, 30000);

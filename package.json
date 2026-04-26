@@ -11,7 +11,7 @@
     "dev": "concurrently \"npm run dev:watch\" \"npm run sync\"",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "start": "cross-env DOTENV_CONFIG_PATH=./config/.env.production node -r dotenv/config -r module-alias/register ./dist/main.js",
+    "start": "cross-env NODE_ENV=production node -r dotenv/config -r module-alias/register ./dist/main.js",
     "sync": "delay 1s && browser-sync start --config bs-config.js",
     "test": "cross-env NODE_ENV=test vitest",
     "type-check": "tsc -b --noEmit"

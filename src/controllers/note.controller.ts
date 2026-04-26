@@ -1,20 +1,7 @@
 import { Request, Response } from 'express';
-import { Notes } from '@src/models/Notes';
+import { Notes, INotesLean } from '@src/models/Notes';
 import { NoteManager, NotesEtudiant, SemestreNote } from '@src/services/note.manager';
 import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
-
-interface NoteRaw {
-  studentId: string;
-  studentName: string;
-  matricule: string;
-  cc: number;
-  examen: number;
-  rattrapage: number;
-  rachat: number;
-  semestre: { reference: string; designation: string; credit: number };
-  unite: { reference: string; code: string; designation: string; credit: number };
-  matiere: { reference: string; designation: string; credit: number };
-}
 
 export async function addNote(req: Request, res: Response) {
   const note = new Notes(req.body as object);
@@ -24,13 +11,20 @@ export async function addNote(req: Request, res: Response) {
 
 export async function getStudentNotes(req: Request, res: Response) {
   const { matricule } = req.params;
-  const notes = await Notes.find({ matricule }).lean();
+  const notes = await Notes.find({ matricule }).lean() as unknown as INotesLean[];
 
   if (notes.length === 0) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Aucune note trouvée pour ce matricule' });
   }
 
-  return res.status(HttpStatusCodes.OK).json(formatToNotesEtudiant(notes as unknown as NoteRaw[]));
+  return res.status(HttpStatusCodes.OK).json(formatToNotesEtudiant(notes));
+}
+
+interface AggregateResult {
+  studentId: string;
+  studentName: string;
+  matricule: string;
+  semestres: INotesLean[];
 }
 
 export async function getNotesByCourse(req: Request, res: Response) {
@@ -57,18 +51,18 @@ export async function getNotesByCourse(req: Request, res: Response) {
         semestres: "$notes"
       }
     }
-  ]);
+  ]) as unknown as AggregateResult[];
 
   if (results.length === 0) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Aucune note trouvée pour ce cours' });
   }
   
-  const finalResults = results.map(r => formatToNotesEtudiant((r as any).semestres as NoteRaw[]));
+  const finalResults = results.map(r => formatToNotesEtudiant(r.semestres));
   
   return res.status(HttpStatusCodes.OK).json(finalResults);
 }
 
-function formatToNotesEtudiant(notes: NoteRaw[]): NotesEtudiant {
+function formatToNotesEtudiant(notes: INotesLean[]): NotesEtudiant {
   const firstNote = notes[0];
   const notesEtudiant: NotesEtudiant = {
     studentId: firstNote.studentId,
@@ -120,13 +114,13 @@ function formatToNotesEtudiant(notes: NoteRaw[]): NotesEtudiant {
 
 export async function getStudentResult(req: Request, res: Response) {
   const { matricule } = req.params;
-  const notes = await Notes.find({ matricule }).lean();
+  const notes = await Notes.find({ matricule }).lean() as unknown as INotesLean[];
 
   if (notes.length === 0) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Aucune note trouvée' });
   }
 
-  const notesEtudiant = formatToNotesEtudiant(notes as unknown as NoteRaw[]);
+  const notesEtudiant = formatToNotesEtudiant(notes);
   const resultat = NoteManager.calculerResultatEtudiant(notesEtudiant);
   return res.status(HttpStatusCodes.OK).json(resultat);
 }

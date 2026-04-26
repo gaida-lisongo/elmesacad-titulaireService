@@ -138,7 +138,7 @@ describe('Seance & Presence Workflow Load Test', () => {
             } else {
               metrics.presences.fail++;
             }
-          } catch (e) {
+          } catch (_e) {
             metrics.presences.fail++;
           }
         });

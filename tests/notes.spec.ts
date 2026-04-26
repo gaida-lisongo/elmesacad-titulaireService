@@ -78,7 +78,7 @@ describe('Notes API Endpoints', () => {
       .get(`/api/notes/student/${testMatricule}`);
 
     expect(res.status).toBe(200);
-    const body = res.body as { matricule: string; semestres: any[] };
+    const body = res.body as { matricule: string; semestres: { unites: { elements: { _id: string }[] }[] }[] };
     expect(body.matricule).toBe(testMatricule);
     expect(body.semestres).toBeInstanceOf(Array);
     expect(body.semestres[0].unites[0].elements[0]._id).toBe(testCourseRef);
@@ -99,7 +99,7 @@ describe('Notes API Endpoints', () => {
       .get(`/api/notes/result/${testMatricule}`);
 
     expect(res.status).toBe(200);
-    const body = res.body as { studentId: string; promotion: any };
+    const body = res.body as { studentId: string; promotion: { totalObtenu: number } };
     expect(body.studentId).toBe(sampleNote.studentId);
     expect(body.promotion).toBeDefined();
     expect(body.promotion.totalObtenu).toBeGreaterThan(0);

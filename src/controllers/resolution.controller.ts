@@ -5,14 +5,16 @@ import { ResolutionService } from '@src/services/resolution.service';
 import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
 
 export async function submitResolution(req: Request, res: Response) {
-  const { email, matricule, matiere, activite_id, reponses_qcm, reponses_tp } = req.body as {
+  const body = req.body as {
     email: string;
     matricule: string;
     matiere: string;
     activite_id: string;
-    reponses_qcm: any[];
-    reponses_tp: any[];
+    reponses_qcm: { qcm_id: string; reponse: string }[];
+    reponses_tp: { tp_id: string; reponse: string; fichiers: string[] }[];
   };
+
+  const { email, matricule, matiere, activite_id, reponses_qcm, reponses_tp } = body;
 
   // 1. Récupérer l'activité liée
   const activite = await Activite.findById(activite_id);

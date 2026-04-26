@@ -43,7 +43,9 @@ export class PresenceService {
 
     // Calcul du retard (ex: si plus de 15 min après heure_debut)
     // On suppose heure_debut au format "HH:mm"
-    const [heures, minutes] = seance.heure_debut.split(':').map(Number);
+    const timeParts = seance.heure_debut.split(':');
+    const heures = Number(timeParts[0]);
+    const minutes = Number(timeParts[1]);
     const debutSeance = new Date(seance.date);
     debutSeance.setHours(heures || 0, minutes || 0, 0);
 

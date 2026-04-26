@@ -40,72 +40,32 @@ export async function getNotesByCourse(req: Request, res: Response) {
     { $match: { 'matiere.reference': courseRef } },
     {
       $group: {
-        _id: {
-          matricule: "$matricule",
-          semRef: "$semestre.reference",
-          uniteRef: "$unite.reference"
-        },
+        _id: "$matricule",
         studentId: { $first: "$studentId" },
         studentName: { $first: "$studentName" },
         semestre: { $first: "$semestre" },
         unite: { $first: "$unite" },
-        elements: {
-          $push: {
-            _id: "$matiere.reference",
-            designation: "$matiere.designation",
-            credit: "$matiere.credit",
-            cc: "$cc",
-            examen: "$examen",
-            rattrapage: "$rattrapage",
-            rachat: "$rachat"
-          }
-        }
+        notes: { $push: "$$ROOT" }
       }
     },
     {
-      $group: {
-        _id: {
-          matricule: "$_id.matricule",
-          semRef: "$_id.semRef"
-        },
-        studentId: { $first: "$studentId" },
-        studentName: { $first: "$studentName" },
-        semestre: { $first: "$semestre" },
-        unites: {
-          $push: {
-            _id: "$unite.reference",
-            code: "$unite.code",
-            designation: "$unite.designation",
-            credit: "$unite.credit",
-            elements: "$elements"
-          }
-        }
+      $project: {
+        _id: 0,
+        studentId: 1,
+        studentName: 1,
+        matricule: "$_id",
+        semestres: "$notes"
       }
-    },
-    {
-      $group: {
-        _id: "$_id.matricule",
-        studentId: { $first: "$studentId" },
-        studentName: { $first: "$studentName" },
-        matricule: { $first: "$_id.matricule" },
-        semestres: {
-          $push: {
-            _id: "$semestre.reference",
-            designation: "$semestre.designation",
-            credit: "$semestre.credit",
-            unites: "$unites"
-          }
-        }
-      }
-    },
-    { $project: { _id: 0 } }
+    }
   ]);
 
   if (results.length === 0) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Aucune note trouvée pour ce cours' });
   }
   
-  return res.status(HttpStatusCodes.OK).json(results);
+  const finalResults = results.map(r => formatToNotesEtudiant((r as any).semestres as NoteRaw[]));
+  
+  return res.status(HttpStatusCodes.OK).json(finalResults);
 }
 
 function formatToNotesEtudiant(notes: NoteRaw[]): NotesEtudiant {

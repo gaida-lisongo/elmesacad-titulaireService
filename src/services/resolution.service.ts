@@ -14,8 +14,11 @@ export class ResolutionService {
     const totalQuestions = activite.qcm.length;
 
     for (const reponseUser of resolution.reponses_qcm) {
-      const question = activite.qcm.find(q => (q as any)._id?.toString() === reponseUser.qcm_id || q.enonce === reponseUser.qcm_id);
-      if (question && question.reponse === reponseUser.reponse) {
+      const question = activite.qcm.find(q => {
+        const qObj = q as unknown as { _id?: { toString(): string }; enonce: string; reponse: string };
+        return qObj._id?.toString() === reponseUser.qcm_id || qObj.enonce === reponseUser.qcm_id;
+      });
+      if (question && (question as unknown as { reponse: string }).reponse === reponseUser.reponse) {
         correctAnswers++;
       }
     }

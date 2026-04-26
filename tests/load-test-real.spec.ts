@@ -77,9 +77,14 @@ describe('INBTP Peak Load Performance Test', () => {
             });
           
           metrics.writing.latencies.push(Date.now() - startReq);
-          if (res.status === 201) metrics.writing.success++;
-          else metrics.writing.fail++;
-        } catch (e) {
+          if (res.status === 201) {
+            metrics.writing.success++;
+            const body = res.body as { matricule: string };
+            MATRICULES_POOL.push(body.matricule);
+          } else {
+            metrics.writing.fail++;
+          }
+        } catch (_e) {
           metrics.writing.fail++;
         }
       });
@@ -106,7 +111,7 @@ describe('INBTP Peak Load Performance Test', () => {
           metrics.studentRead.latencies.push(Date.now() - startReq);
           if (res.status === 200) metrics.studentRead.success++;
           else metrics.studentRead.fail++;
-        } catch (e) {
+        } catch (_e) {
           metrics.studentRead.fail++;
         }
       });
@@ -138,7 +143,7 @@ describe('INBTP Peak Load Performance Test', () => {
           } else {
             metrics.juryRead.fail++;
           }
-        } catch (e) {
+        } catch (_e) {
           metrics.juryRead.fail++;
         }
       });
@@ -148,7 +153,7 @@ describe('INBTP Peak Load Performance Test', () => {
     metrics.juryRead.duration = Date.now() - startTime;
     
     // Sauvegarde des échantillons
-    const fs = require('fs');
+    const fs = require('fs') as { writeFileSync(p: string, c: string): void };
     fs.writeFileSync(
       path.resolve(__dirname, '../load-test-results.json'),
       JSON.stringify({ 

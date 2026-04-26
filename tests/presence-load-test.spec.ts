@@ -52,11 +52,12 @@ describe('Seance & Presence Workflow Load Test', () => {
           
           if (res.status === 201) {
             metrics.charges.success++;
-            CHARGE_IDS.push(res.body._id);
+            const body = res.body as { _id: string };
+            CHARGE_IDS.push(body._id);
           } else {
             metrics.charges.fail++;
           }
-        } catch (e) {
+        } catch (_e) {
           metrics.charges.fail++;
         }
       });
@@ -90,11 +91,12 @@ describe('Seance & Presence Workflow Load Test', () => {
             
             if (res.status === 201) {
               metrics.seances.success++;
-              SEANCE_IDS.push(res.body._id);
+              const body = res.body as { _id: string };
+              SEANCE_IDS.push(body._id);
             } else {
               metrics.seances.fail++;
             }
-          } catch (e) {
+          } catch (_e) {
             metrics.seances.fail++;
           }
         });
@@ -148,7 +150,7 @@ describe('Seance & Presence Workflow Load Test', () => {
     console.log(`📊 PHASE 3: ${metrics.presences.success} Presences checked in ${metrics.presences.duration}ms`);
     
     // Sauvegarde du rapport final
-    const fs = require('fs');
+    const fs = require('fs') as { writeFileSync(p: string, c: string): void };
     fs.writeFileSync(
       path.resolve(__dirname, '../presence-load-test-v2-results.json'),
       JSON.stringify({ 

@@ -68,8 +68,9 @@ describe('Notes API Endpoints', () => {
       .send(sampleNote);
 
     expect(res.status).toBe(201);
-    expect(res.body.matricule).toBe(testMatricule);
-    expect(res.body.matiere.reference).toBe(testCourseRef);
+    const body = res.body as { matricule: string; matiere: { reference: string } };
+    expect(body.matricule).toBe(testMatricule);
+    expect(body.matiere.reference).toBe(testCourseRef);
   });
 
   it('should get student notes in structured format (GET /api/notes/student/:matricule)', async () => {
@@ -77,9 +78,10 @@ describe('Notes API Endpoints', () => {
       .get(`/api/notes/student/${testMatricule}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.matricule).toBe(testMatricule);
-    expect(res.body.semestres).toBeInstanceOf(Array);
-    expect(res.body.semestres[0].unites[0].elements[0]._id).toBe(testCourseRef);
+    const body = res.body as { matricule: string; semestres: any[] };
+    expect(body.matricule).toBe(testMatricule);
+    expect(body.semestres).toBeInstanceOf(Array);
+    expect(body.semestres[0].unites[0].elements[0]._id).toBe(testCourseRef);
   });
 
   it('should get notes by course reference (GET /api/notes/course/:courseRef)', async () => {
@@ -87,8 +89,9 @@ describe('Notes API Endpoints', () => {
       .get(`/api/notes/course/${testCourseRef}`);
 
     expect(res.status).toBe(200);
-    expect(res.body).toBeInstanceOf(Array);
-    expect(res.body[0].matricule).toBe(testMatricule);
+    const body = res.body as { matricule: string }[];
+    expect(body).toBeInstanceOf(Array);
+    expect(body[0].matricule).toBe(testMatricule);
   });
 
   it('should calculate student result (GET /api/notes/result/:matricule)', async () => {
@@ -96,9 +99,10 @@ describe('Notes API Endpoints', () => {
       .get(`/api/notes/result/${testMatricule}`);
 
     expect(res.status).toBe(200);
-    expect(res.body.studentId).toBe(sampleNote.studentId);
-    expect(res.body.promotion).toBeDefined();
-    expect(res.body.promotion.totalObtenu).toBeGreaterThan(0);
+    const body = res.body as { studentId: string; promotion: any };
+    expect(body.studentId).toBe(sampleNote.studentId);
+    expect(body.promotion).toBeDefined();
+    expect(body.promotion.totalObtenu).toBeGreaterThan(0);
   });
 
   it('Stress Test: should handle 50 concurrent requests', async () => {
@@ -114,7 +118,8 @@ describe('Notes API Endpoints', () => {
     
     responses.forEach(res => {
       expect(res.status).toBe(200);
-      expect(res.body.matricule).toBe(testMatricule);
+      const body = res.body as { matricule: string };
+      expect(body.matricule).toBe(testMatricule);
     });
   }, 30000); // Timeout augmenté pour le stress test
 

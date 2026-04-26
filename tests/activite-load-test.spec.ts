@@ -52,35 +52,32 @@ describe('Activite & Resolution Workflow Load Test', () => {
       const isQCM = i < 30;
       const type = isQCM ? 'QCM' : 'TP';
       
-      const payload: any = {
+      const payload = {
         charge_horaire: SAMPLE_CHARGE_ID,
         categorie: type,
         note_maximale: 20,
         date_remise: new Date(Date.now() + 86400000),
-        status: "publié"
-      };
-
-      if (isQCM) {
-        payload.qcm = [
+        status: "publié",
+        qcm: isQCM ? [
           { enonce: "Question 1", options: ["A", "B", "C"], reponse: "A" },
           { enonce: "Question 2", options: ["A", "B", "C"], reponse: "B" }
-        ];
-      } else {
-        payload.tp = [
+        ] : undefined,
+        tp: !isQCM ? [
           { enonce: "TP 1", description: [{ title: "Consigne", contenu: ["Faire ceci"] }], status: true }
-        ];
-      }
+        ] : undefined
+      };
 
       return limit(async () => {
         try {
           const res = await request(server).post('/api/activites/add').send(payload);
           if (res.status === 201) {
             metrics.activites.success++;
-            ACTIVITE_IDS.push({ id: res.body._id, type: type, note_maximale: 20 });
+            const body = res.body as { _id: string };
+            ACTIVITE_IDS.push({ id: body._id, type: type, note_maximale: 20 });
           } else {
             metrics.activites.fail++;
           }
-        } catch (e) {
+        } catch (_e) {
           metrics.activites.fail++;
         }
       });
@@ -120,11 +117,12 @@ describe('Activite & Resolution Workflow Load Test', () => {
           
           if (res.status === 201) {
             metrics.resolutions.success++;
-            metrics.resolutions.totalScore += res.body.note;
+            const body = res.body as { note: number };
+            metrics.resolutions.totalScore += body.note;
           } else {
             metrics.resolutions.fail++;
           }
-        } catch (e) {
+        } catch (_e) {
           metrics.resolutions.fail++;
         }
       });
@@ -136,7 +134,7 @@ describe('Activite & Resolution Workflow Load Test', () => {
     console.log(`📈 Moyenne des notes calculées automatiquement: ${(metrics.resolutions.totalScore / metrics.resolutions.success).toFixed(2)}/20`);
     
     // Sauvegarde du rapport
-    const fs = require('fs');
+    const fs = require('fs') as { writeFileSync(p: string, c: string): void };
     fs.writeFileSync(
       path.resolve(__dirname, '../activite-load-test-results.json'),
       JSON.stringify({ timestamp: new Date().toISOString(), metrics }, null, 2)

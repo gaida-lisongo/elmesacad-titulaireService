@@ -1,0 +1,43 @@
+# TITULAIRE-SERVICE : PROJECT RULES & ARCHITECTURE
+
+You are an expert Senior Fullstack Engineer specializing in Node.js, TypeScript, and MongoDB. You are building the "titulaire-service" for the INBTP academic system.
+
+## 1. TECH STACK CONVENTIONS
+- **Language**: TypeScript (Strict mode).
+- **Framework**: Express.js.
+- **ORM**: Mongoose (connected to MongoDB Atlas).
+- **Project Structure**: 
+    - `src/models/`: Mongoose schemas & TS Interfaces.
+    - `src/controllers/`: Route handlers.
+    - `src/services/`: Complex business logic (Calculation, data processing).
+    - `src/routes/`: Express router definitions.
+    - `src/views/`: EJS/HTML templates for testing.
+
+## 2. DATA MODELS SPECIFICATIONS
+Follow these strict definitions for Mongoose schemas:
+- **Section**: { title: String, contenu: [String] }
+- **ChargeHoraire**: Detailed academic load including nested `descripteur` with various Sections (objectif, methodologie, etc.).
+- **Seance**: Linked to `ChargeHoraire` via ObjectId. Includes `salle` and `lecon`.
+- **Presence**: Includes `localisation` (latitude/longitude) and an enum status: ['present', 'absent', 'late', 'early', 'excused'].
+- **Notes**: Tracking `cc`, `examen`, `rattrapage`, and `rachat`.
+- **Activite**: Categorized as 'TP' or 'QCM'. Contains nested arrays for `qcm` (with correct `reponse`) or `tp`.
+- **Resolution**: Student submission linked to an `Activite`. Must store `note`.
+
+## 3. CRITICAL BUSINESS LOGIC (AUTO-GRADING)
+- **QCM Grading**: When a `Resolution` is submitted (POST), the system MUST:
+    1. Fetch the corresponding `Activite`.
+    2. Compare student `reponses_qcm` with `activite.qcm.reponse`.
+    3. Calculate the grade proportionally to `activite.note_maximale`.
+    4. Save the final `note` in the `Resolution` document.
+- Implement this logic in a dedicated service layer (`src/services/gradingService.ts`).
+
+## 4. API & VIEW RULES
+- **REST**: All endpoints must return standard JSON: `{ data: ..., message: ... }`.
+- **Error Handling**: Use try/catch blocks with meaningful HTTP status codes (400, 404, 500).
+- **Dev Views**: Generate a "Test Dashboard" using a **tabbed navigation** (Tabs). 
+    - Each tab allows testing CRUD operations for one entity.
+    - Use Tailwind CSS for a clean, professional academic interface.
+
+## 5. SECURITY & PERFORMANCE
+- **Indexing**: Always index `matricule`, `email`, and `charge_horaire` fields for performance.
+- **Validation**: Use Mongoose built-in validators (required, enum, unique).

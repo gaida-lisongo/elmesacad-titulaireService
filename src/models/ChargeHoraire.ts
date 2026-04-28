@@ -7,6 +7,7 @@ export interface IChargeHoraire extends Document {
   promotion: { designation: string; reference: string };
   titulaire: { name: string; matricule: string; email: string; telephone: string; disponibilite: string };
   horaire: { jour: string; heure_debut: string; heure_fin: string; date_debut: Date; date_fin: Date };
+  status: boolean;
   descripteur: {
     objectif: ISection[];
     methodologie: ISection[];
@@ -45,6 +46,7 @@ const ChargeHoraireSchema = new Schema<IChargeHoraire>({
     date_debut: Date,
     date_fin: Date,
   },
+  status: { type: Boolean, default: true },
   descripteur: {
     objectif: [SectionSchema],
     methodologie: [SectionSchema],

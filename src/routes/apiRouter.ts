@@ -27,6 +27,9 @@ apiRouter.use(Paths.Activites._, activiteRouter);
 const chargeRouter = Router();
 chargeRouter.post(Paths.Charges.Add, ChargeController.addCharge);
 chargeRouter.get(Paths.Charges.All, ChargeController.getAllCharges);
+chargeRouter.get(Paths.Charges.GetById, ChargeController.getChargeById);
+chargeRouter.put(Paths.Charges.Update, ChargeController.updateCharge);
+chargeRouter.delete(Paths.Charges.Delete, ChargeController.deleteCharge);
 apiRouter.use(Paths.Charges._, chargeRouter);
 
 // Seances

@@ -42,6 +42,96 @@ npm run start
 
 Tous les endpoints sont préfixés par `/api`.
 
+### Charges horaires (`/api/charges`)
+
+Une **charge horaire** décrit l’assignation d’un cours (matière, unité, promotion), le titulaire, le créneau (`horaire`), un **statut actif/inactif** (`status`), et éventuellement un **descripteur** (sections structurées : objectifs, méthodologie, etc.).
+
+#### Structure JSON (modèle)
+
+Les dates `date_debut` et `date_fin` dans `horaire` acceptent les chaînes ISO 8601 ; MongoDB les stocke comme `Date`.
+
+| Champ | Type | Description |
+| :--- | :--- | :--- |
+| `matiere` | objet | `designation`, `reference` |
+| `unite` | objet | `designation`, `code_unite`, `semestre` |
+| `promotion` | objet | `designation`, `reference` |
+| `titulaire` | objet | `name`, `matricule`, `email`, `telephone`, `disponibilite` |
+| `horaire` | objet | `jour`, `heure_debut`, `heure_fin`, `date_debut`, `date_fin` |
+| `status` | booléen | Par défaut `true` à la création ; `false` pour désactiver sans supprimer |
+| `descripteur` | objet | Clés : `objectif`, `methodologie`, `mode_evaluation`, `penalties`, `ressources`, `plan_cours` — chaque valeur est un **tableau de sections** `{ "title": string, "contenu": string[] }` |
+
+#### CRUD
+
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/charges/add` | Créer une charge horaire |
+| `GET` | `/charges/all` | Lister toutes les charges |
+| `GET` | `/charges/:id` | Récupérer une charge par son `_id` MongoDB |
+| `PUT` | `/charges/update/:id` | Mettre à jour une charge (payload partiel possible) |
+| `DELETE` | `/charges/delete/:id` | Supprimer une charge |
+
+#### Payload — création (`POST /api/charges/add`)
+
+Exemple **minimal** (les champs non fournis restent vides ou absent selon la validation Mongoose ; `status` est alors `true` par défaut) :
+
+```json
+{
+  "matiere": { "designation": "Algorithmique", "reference": "MAT-001" },
+  "unite": { "designation": "Informatique Fondamentale", "code_unite": "UE-INF", "semestre": "S1" },
+  "promotion": { "designation": "L1 INFO", "reference": "PROMO-2026-L1" },
+  "titulaire": {
+    "name": "Prof. Dupont",
+    "matricule": "T-1001",
+    "email": "dupont@inbtp.edu",
+    "telephone": "+243900000000",
+    "disponibilite": "lun-mer 08h-12h"
+  },
+  "horaire": {
+    "jour": "Mercredi",
+    "heure_debut": "08:00",
+    "heure_fin": "10:00",
+    "date_debut": "2026-01-15T00:00:00.000Z",
+    "date_fin": "2026-06-30T00:00:00.000Z"
+  },
+  "status": true,
+  "descripteur": {
+    "objectif": [{ "title": "Objectifs généraux", "contenu": ["Notion X", "Notion Y"] }],
+    "methodologie": [],
+    "mode_evaluation": [],
+    "penalties": [],
+    "ressources": [],
+    "plan_cours": []
+  }
+}
+```
+
+#### Payload — lecture (`GET /api/charges/:id`)
+
+Aucun corps ; l’identifiant est dans l’URL (`:id` = `_id` MongoDB de la charge).
+
+#### Payload — mise à jour (`PUT /api/charges/update/:id`)
+
+Corps JSON **partiel** ou complet ; seuls les champs envoyés sont mis à jour.
+
+```json
+{
+  "status": false,
+  "titulaire": {
+    "name": "Prof. Martin",
+    "matricule": "T-1002",
+    "email": "martin@inbtp.edu",
+    "telephone": "+243900000001",
+    "disponibilite": "mar-jeu"
+  }
+}
+```
+
+#### Payload — suppression (`DELETE /api/charges/delete/:id`)
+
+Aucun corps ; réponse `204 No Content` si succès, `404` si l’id n’existe pas.
+
+---
+
 ### 1. Gestion des Notes (`/api/notes`)
 
 | Méthode | Endpoint | Description |

@@ -6,6 +6,9 @@ const Paths = {
     _: '/charges',
     Add: '/add',
     All: '/all',
+    GetById: '/:id',
+    Update: '/update/:id',
+    Delete: '/delete/:id',
   },
   Seances: {
     _: '/seances',

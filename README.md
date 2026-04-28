@@ -65,10 +65,30 @@ Les dates `date_debut` et `date_fin` dans `horaire` acceptent les chaînes ISO 8
 | Méthode | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/charges/add` | Créer une charge horaire |
-| `GET` | `/charges/all` | Lister toutes les charges |
+| `GET` | `/charges/all` | Lister les charges (optionnel : filtres en **query string**, voir ci‑dessous) |
 | `GET` | `/charges/:id` | Récupérer une charge par son `_id` MongoDB |
 | `PUT` | `/charges/update/:id` | Mettre à jour une charge (payload partiel possible) |
 | `DELETE` | `/charges/delete/:id` | Supprimer une charge |
+
+#### Filtres sur la liste (`GET /api/charges/all`)
+
+Sans paramètres, la réponse est **toutes** les charges. Chaque paramètre suivant est **optionnel** ; ils se **combinent** avec une conjonction (« ET »).
+
+| Paramètre | Champ MongoDB filtré | Exemple |
+| :--- | :--- | :--- |
+| `promotion_reference` | `promotion.reference` | `?promotion_reference=PROMO-2026-L1` |
+| `code_unite` | `unite.code_unite` | `?code_unite=UE-INF` |
+| `semestre` | `unite.semestre` | `?semestre=S1` (souvent avec `code_unite`) |
+| `matiere_reference` | `matiere.reference` | `?matiere_reference=MAT-001` |
+| `titulaire_matricule` | `titulaire.matricule` | `?titulaire_matricule=T-1001` |
+| `titulaire_email` | `titulaire.email` | `?titulaire_email=dupont@inbtp.edu` |
+| `horaire_jour` | `horaire.jour` | `?horaire_jour=Mercredi` |
+| `horaire_heure_debut` | `horaire.heure_debut` | `?horaire_heure_debut=08:00` |
+| `horaire_heure_fin` | `horaire.heure_fin` | `?horaire_heure_fin=10:00` |
+
+Exemple combiné : charges de la promotion `PROMO-2026-L1` pour l’unité `UE-INF` au **Mercredi** 08:00–10:00 pour le titulaire `T-1001` :
+
+`/api/charges/all?promotion_reference=PROMO-2026-L1&code_unite=UE-INF&titulaire_matricule=T-1001&horaire_jour=Mercredi&horaire_heure_debut=08:00&horaire_heure_fin=10:00`
 
 #### Payload — création (`POST /api/charges/add`)
 

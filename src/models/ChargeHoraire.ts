@@ -1,13 +1,17 @@
 import { Schema, model, Document } from 'mongoose';
 import { ISection, SectionSchema } from './Section';
 
+/** Statut d’avancement pédagogique d’une charge (UI / suivi des enseignements). */
+export const CHARGE_HORAIRE_STATUSES = ['pending', 'finish', 'no'] as const;
+export type ChargeHoraireStatus = (typeof CHARGE_HORAIRE_STATUSES)[number];
+
 export interface IChargeHoraire extends Document {
   matiere: { designation: string; reference: string };
   unite: { designation: string; code_unite: string; semestre: string };
   promotion: { designation: string; reference: string };
   titulaire: { name: string; matricule: string; email: string; telephone: string; disponibilite: string };
   horaire: { jour: string; heure_debut: string; heure_fin: string; date_debut: Date; date_fin: Date };
-  status: boolean;
+  status: ChargeHoraireStatus;
   descripteur: {
     objectif: ISection[];
     methodologie: ISection[];
@@ -46,7 +50,11 @@ const ChargeHoraireSchema = new Schema<IChargeHoraire>({
     date_debut: Date,
     date_fin: Date,
   },
-  status: { type: Boolean, default: true },
+  status: {
+    type: String,
+    enum: [...CHARGE_HORAIRE_STATUSES],
+    default: 'pending',
+  },
   descripteur: {
     objectif: [SectionSchema],
     methodologie: [SectionSchema],

@@ -44,7 +44,7 @@ Tous les endpoints sont préfixés par `/api`.
 
 ### Charges horaires (`/api/charges`)
 
-Une **charge horaire** décrit l’assignation d’un cours (matière, unité, promotion), le titulaire, le créneau (`horaire`), un **statut actif/inactif** (`status`), et éventuellement un **descripteur** (sections structurées : objectifs, méthodologie, etc.).
+Une **charge horaire** décrit l’assignation d’un cours (matière, unité, promotion), le titulaire, le créneau (`horaire`), un **statut d’avancement** (`status`) pour le suivi des enseignements côté frontend, et éventuellement un **descripteur** (sections structurées : objectifs, méthodologie, etc.).
 
 #### Structure JSON (modèle)
 
@@ -57,7 +57,7 @@ Les dates `date_debut` et `date_fin` dans `horaire` acceptent les chaînes ISO 8
 | `promotion` | objet | `designation`, `reference` |
 | `titulaire` | objet | `name`, `matricule`, `email`, `telephone`, `disponibilite` |
 | `horaire` | objet | `jour`, `heure_debut`, `heure_fin`, `date_debut`, `date_fin` |
-| `status` | booléen | Par défaut `true` à la création ; `false` pour désactiver sans supprimer |
+| `status` | chaîne enum | `pending` : enseignement pas encore terminé ; `finish` : terminé ; `no` : non concerné / hors périmètre (ex. annulé). Défaut : `pending` |
 | `descripteur` | objet | Clés : `objectif`, `methodologie`, `mode_evaluation`, `penalties`, `ressources`, `plan_cours` — chaque valeur est un **tableau de sections** `{ "title": string, "contenu": string[] }` |
 
 #### CRUD
@@ -85,6 +85,7 @@ Sans paramètres, la réponse est **toutes** les charges. Chaque paramètre suiv
 | `horaire_jour` | `horaire.jour` | `?horaire_jour=Mercredi` |
 | `horaire_heure_debut` | `horaire.heure_debut` | `?horaire_heure_debut=08:00` |
 | `horaire_heure_fin` | `horaire.heure_fin` | `?horaire_heure_fin=10:00` |
+| `status` | `status` | `?status=pending` ou `finish` ou `no` |
 
 Exemple combiné : charges de la promotion `PROMO-2026-L1` pour l’unité `UE-INF` au **Mercredi** 08:00–10:00 pour le titulaire `T-1001` :
 
@@ -92,7 +93,7 @@ Exemple combiné : charges de la promotion `PROMO-2026-L1` pour l’unité `UE
 
 #### Payload — création (`POST /api/charges/add`)
 
-Exemple **minimal** (les champs non fournis restent vides ou absent selon la validation Mongoose ; `status` est alors `true` par défaut) :
+Exemple **minimal** (les champs non fournis restent vides ou absent selon la validation Mongoose ; `status` est alors `pending` par défaut) :
 
 ```json
 {
@@ -113,7 +114,7 @@ Exemple **minimal** (les champs non fournis restent vides ou absent selon la val
     "date_debut": "2026-01-15T00:00:00.000Z",
     "date_fin": "2026-06-30T00:00:00.000Z"
   },
-  "status": true,
+  "status": "pending",
   "descripteur": {
     "objectif": [{ "title": "Objectifs généraux", "contenu": ["Notion X", "Notion Y"] }],
     "methodologie": [],
@@ -135,7 +136,7 @@ Corps JSON **partiel** ou complet ; seuls les champs envoyés sont mis à jour.
 
 ```json
 {
-  "status": false,
+  "status": "finish",
   "titulaire": {
     "name": "Prof. Martin",
     "matricule": "T-1002",
@@ -145,6 +146,10 @@ Corps JSON **partiel** ou complet ; seuls les champs envoyés sont mis à jour.
   }
 }
 ```
+
+Les valeurs possibles pour `status` sont : `"pending"`, `"finish"`, `"no"` (même règle en création et en mise à jour).
+
+**Remarque — données existantes :** si d’anciennes charges avaient un `status` booléen, il faut les mettre à jour en base (ex. `true` → `"pending"`, `false` → `"no"`) avant de resauver avec la validation actuelle.
 
 #### Payload — suppression (`DELETE /api/charges/delete/:id`)
 

@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
-import { ChargeHoraire } from '@src/models/ChargeHoraire';
+import { ChargeHoraire, CHARGE_HORAIRE_STATUSES } from '@src/models/ChargeHoraire';
 import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
+
+function isChargeHoraireStatus(value: string): boolean {
+  return (CHARGE_HORAIRE_STATUSES as readonly string[]).includes(value);
+}
 
 function firstQueryString(val: unknown): string | undefined {
   if (val === undefined || val === null) return undefined;
@@ -39,6 +43,9 @@ function buildChargeFilter(query: Request['query']): Record<string, string> {
 
   const horaireHeureFin = firstQueryString(query.horaire_heure_fin);
   if (horaireHeureFin) filter['horaire.heure_fin'] = horaireHeureFin;
+
+  const status = firstQueryString(query.status);
+  if (status && isChargeHoraireStatus(status)) filter.status = status;
 
   return filter;
 }

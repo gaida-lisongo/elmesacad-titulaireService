@@ -129,4 +129,62 @@ describe('Notes API Endpoints', () => {
 
     expect(res.status).toBe(404);
   });
+
+  it('should expose full CRUD by id, bulk POST, reject invalid ObjectId', async () => {
+    const matriculeCrud = 'TEST-MAT-CRUD-ID';
+    await Notes.deleteMany({ matricule: matriculeCrud });
+
+    const cre = await request(server)
+      .post('/api/notes/add')
+      .send({
+        ...sampleNote,
+        matricule: matriculeCrud,
+        matiere: { ...sampleNote.matiere, reference: 'TEST-CRUD-MAT-1' },
+      });
+    expect(cre.status).toBe(201);
+    const noteId = (cre.body as { _id?: string })._id;
+    expect(noteId).toBeTruthy();
+
+    const getOne = await request(server).get(`/api/notes/${noteId}`);
+    expect(getOne.status).toBe(200);
+    expect((getOne.body as { matricule?: string }).matricule).toBe(matriculeCrud);
+
+    const upd = await request(server)
+      .put(`/api/notes/update/${noteId}`)
+      .send({ cc: 16, examen: 11 });
+    expect(upd.status).toBe(200);
+    expect((upd.body as { cc: number }).cc).toBe(16);
+
+    const badId = await request(server).get('/api/notes/not-an-object-id');
+    expect(badId.status).toBe(400);
+
+    const bulkRes = await request(server)
+      .post('/api/notes/bulk')
+      .send({
+        notes: [
+          {
+            ...sampleNote,
+            matricule: matriculeCrud,
+            matiere: { ...sampleNote.matiere, reference: 'TEST-BULK-2' },
+            cc: 10,
+          },
+          {
+            ...sampleNote,
+            matricule: matriculeCrud,
+            matiere: { ...sampleNote.matiere, reference: 'TEST-BULK-3' },
+            cc: 11,
+          },
+        ],
+      });
+    expect(bulkRes.status).toBe(201);
+    expect((bulkRes.body as { count?: number }).count).toBe(2);
+
+    const del = await request(server).delete(`/api/notes/delete/${noteId}`);
+    expect(del.status).toBe(204);
+
+    const gone = await request(server).get(`/api/notes/${noteId}`);
+    expect(gone.status).toBe(404);
+
+    await Notes.deleteMany({ matricule: matriculeCrud });
+  });
 });

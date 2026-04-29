@@ -157,29 +157,175 @@ Aucun corps ; réponse `204 No Content` si succès, `404` si l’id n’existe p
 
 ---
 
-### 1. Gestion des Notes (`/api/notes`)
+### Fiche de cotation — notes (`/api/notes`)
 
-| Méthode | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/add` | Ajouter une note pour un étudiant |
-| `GET` | `/student/:matricule` | Récupérer les notes structurées d'un étudiant |
-| `GET` | `/course/:courseRef` | Récupérer les notes structurées par cours (Jury) |
-| `GET` | `/result/:matricule` | Calculer le résultat final (Moyenne, Crédits) |
+La **fiche de cotation** côté API n’est pas un seul document : chaque **ligne** (étudiant + matière + unité + semestre) est stockée comme **un enregistrement** dans la collection `Notes`. Une fiche complète pour un étudiant = **plusieurs lignes**, une par association matière/contexte).
 
-**Exemple de réponse `/student/:matricule` :**
+Les références (`matiere.reference`, `unite.reference`, `semestre.reference`) doivent **cohérer avec le référentiel** du student-service (_id utilisés dans les parcours) pour que jury et étudiants voient les mêmes codes.
+
+#### Modèle JSON (corps pour création et structure en lecture brute)
+
+| Champ | Type | Obligatoire | Description |
+| :--- | :--- | :---: | :--- |
+| `email` | string | oui | E-mail étudiant |
+| `matricule` | string | oui | Matricule (index recherche) |
+| `studentId` | string | oui | Identifiant métier étudiant |
+| `studentName` | string | oui | Nom affiché |
+| `semestre` | objet | oui | `designation`, `reference`, `credit` |
+| `unite` | objet | oui | `designation`, `reference`, `code`, `credit` |
+| `matiere` | objet | oui | `designation`, `reference`, `credit` |
+| `cc` | number | non | Note contrôle continu (défaut `0`) |
+| `examen` | number | non | Note examen session principale (défaut `0`) |
+| `rattrapage` | number | non | Note rattrapage (défaut `0`) |
+| `rachat` | number | non | Rachat / autre règle métier (défaut `0`) |
+
+Les lectures **agrégées** (`/student/:matricule`, `/course/:courseRef`) restructurent ces lignes en arborescence **semestres → unités d’enseignement → éléments (matières)** avec les champs de notes sur chaque élément.
+
+#### CRUD — tableau récapitulatif
+
+| Opération | Méthode | Endpoint | Réponses habituelles |
+| :--- | :--- | :--- | :--- |
+| **Create** (unitaire) | `POST` | `/api/notes/add` | `201` + ligne créée (`_id`) |
+| **Create** (bulk) | `POST` | `/api/notes/bulk` | `201` + `{ count, notes }` |
+| **Read** (liste brute) | `GET` | `/api/notes/all` | `200` tableau de documents |
+| **Read** (une ligne par `_id`) | `GET` | `/api/notes/:id` | `200` \| `404` \| `400` si id MongoDB invalide |
+| **Read** (fiche structurée étudiant) | `GET` | `/api/notes/student/:matricule` | `200` \| `404` |
+| **Read** (vue jury par cours) | `GET` | `/api/notes/course/:courseRef` | `200` \| `404` |
+| **Read** (bulletin / résultat agrégé) | `GET` | `/api/notes/result/:matricule` | `200` \| `404` |
+| **Update** (payload partiel ou complet) | `PUT` | `/api/notes/update/:id` | `200` mise à jour \| `404` \| `400` |
+| **Delete** | `DELETE` | `/api/notes/delete/:id` | `204` \| `404` \| `400` |
+
+Pour **Update**, seuls les champs envoyés sont fusionnés avec le document existant (`findByIdAndUpdate` avec validation Mongoose).
+
+Pour **Delete**, réponse sans corps (`204 No Content`).
+
+#### Création bulk — `POST /api/notes/bulk`
+
+Corps au choix :
+
+- un **tableau JSON** de lignes `[{ … }, { … }]`, ou  
+- un objet `{ "notes": [ … ] }` avec le même schéma que `POST /api/notes/add`.
+
+Réponse `201` : `{ "count": number, "notes": [ … documents Mongo ] }`. En cas de validation `insertMany`, réponse `400` avec `details`.
+
+#### Envoi d’une note — unitaire (`POST /api/notes/add`)
+
+Exemple minimal cohérent avec les tests automatisés :
+
 ```json
 {
-  "studentId": "ID-123",
-  "studentName": "Nathan",
-  "matricule": "2026-001",
+  "studentId": "STU-001",
+  "studentName": "Kabengele Kabeya",
+  "matricule": "2026-042",
+  "email": "kabeya.kabengele@inbtp.ac.cd",
+  "semestre": {
+    "designation": "Semestre 1",
+    "reference": "SEM-S1-2026",
+    "credit": 30
+  },
+  "unite": {
+    "designation": "Informatique fondamentale",
+    "reference": "UE-INF-2026",
+    "code": "UE-INF",
+    "credit": 6
+  },
+  "matiere": {
+    "designation": "Algorithmique",
+    "reference": "MAT-ALGO-001",
+    "credit": 4
+  },
+  "cc": 15,
+  "examen": 12,
+  "rattrapage": 0,
+  "rachat": 0
+}
+```
+
+#### Lecture / mise à jour / suppression par `_id`
+
+Après `POST /add` ou `GET /all`, utiliser l’**`_id`** MongoDB de la ligne :
+
+```http
+GET /api/notes/507f1f77bcf86cd799439011
+PUT /api/notes/update/507f1f77bcf86cd799439011
+DELETE /api/notes/delete/507f1f77bcf86cd799439011
+```
+
+#### Envoi en **bulk** — alternative à plusieurs `POST /add`
+
+Préférer **`POST /api/notes/bulk`** (corps = tableau de lignes ou `{ "notes": [ … ] }`). Sinon, enchaîner plusieurs `POST /api/notes/add` par paquets pour limiter la charge.
+
+```javascript
+const base = 'https://<hôte>/titulaire'; // préfixe gateway : adapter
+
+async function sendNotesBulkApi(lines) {
+  const r = await fetch(`${base}/api/notes/bulk`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(lines), // ou { notes: lines }
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json(); // { count, notes }
+}
+
+async function sendNotesOneByOneChunks(lines, chunkSize = 25) {
+  const path = '/api/notes/add';
+  for (let i = 0; i < lines.length; i += chunkSize) {
+    const chunk = lines.slice(i, i + chunkSize);
+    await Promise.all(
+      chunk.map((body) =>
+        fetch(`${base}${path}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        }).then((r) => {
+          if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+          return r.json();
+        })
+      )
+    );
+  }
+}
+```
+
+Pour un **fichier CSV** (matricule, code matière, cc, examen, …), le script d’import doit mapper chaque ligne vers ce JSON (en récupérant `studentId`, `email`, références UE/semestre depuis votre annuaire ou le student-service).
+
+#### Exemple — mise à jour partielle (`PUT /api/notes/update/:id`)
+
+```json
+{
+  "cc": 14,
+  "examen": 15,
+  "rattrapage": 0
+}
+```
+
+```json
+{
+  "studentId": "STU-001",
+  "studentName": "Kabengele Kabeya",
+  "matricule": "2026-042",
   "semestres": [
     {
+      "_id": "SEM-S1-2026",
       "designation": "Semestre 1",
+      "credit": 30,
       "unites": [
         {
-          "code": "UE-INF1",
+          "_id": "UE-INF-2026",
+          "code": "UE-INF",
+          "designation": "Informatique fondamentale",
+          "credit": 6,
           "elements": [
-            { "_id": "MAT-001", "designation": "Algo", "cc": 15, "examen": 12 }
+            {
+              "_id": "MAT-ALGO-001",
+              "designation": "Algorithmique",
+              "credit": 4,
+              "cc": 15,
+              "examen": 12,
+              "rattrapage": 0,
+              "rachat": 0
+            }
           ]
         }
       ]
@@ -188,7 +334,11 @@ Aucun corps ; réponse `204 No Content` si succès, `404` si l’id n’existe p
 }
 ```
 
-### 2. Séances et Présences (`/api/seances`, `/api/presences`)
+`GET /api/notes/course/:courseRef` renvoie un **tableau** d’objets de ce même format (un objet par étudiant concerné). `GET /api/notes/result/:matricule` renvoie l’arborescence de résultats avec totaux promotion et mentions (voir types `ResultatEtudiant` dans `src/services/note.manager.ts`).
+
+---
+
+### Séances et Présences (`/api/seances`, `/api/presences`)
 
 | Méthode | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -203,7 +353,7 @@ Aucun corps ; réponse `204 No Content` si succès, `404` si l’id n’existe p
     - Vérifie si l'étudiant est dans un rayon de `LOCATION_TOLERANCE` mètres de l'INBTP.
     - Marque `late` si le scan a lieu plus de 15 min après le début.
 
-### 3. Activités et Résolutions (`/api/activites`, `/api/resolutions`)
+### Activités et Résolutions (`/api/activites`, `/api/resolutions`)
 
 | Méthode | Endpoint | Description |
 | :--- | :--- | :--- |

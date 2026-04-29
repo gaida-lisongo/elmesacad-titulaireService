@@ -27,10 +27,14 @@ const Paths = {
   Notes: {
     _: '/notes',
     Add: '/add',
+    Bulk: '/bulk',
     All: '/all',
     GetByMatricule: '/student/:matricule',
     GetByCourse: '/course/:courseRef',
     ResultByMatricule: '/result/:matricule',
+    GetById: '/:id',
+    Update: '/update/:id',
+    Delete: '/delete/:id',
   },
   Resolutions: {
     _: '/resolutions',

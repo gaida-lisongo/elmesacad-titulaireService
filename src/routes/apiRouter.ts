@@ -48,13 +48,17 @@ presenceRouter.get(Paths.Presences.BySeance, PresenceController.getPresencesBySe
 presenceRouter.put(Paths.Presences.Update, PresenceController.updatePresence);
 apiRouter.use(Paths.Presences._, presenceRouter);
 
-// Notes
+// Notes (chemins statiques et paramétrés sans `/:id` avant les routes littérales)
 const noteRouter = Router();
 noteRouter.post(Paths.Notes.Add, NoteController.addNote);
+noteRouter.post(Paths.Notes.Bulk, NoteController.addNotesBulk);
 noteRouter.get(Paths.Notes.All, NoteController.getAllNotes);
 noteRouter.get(Paths.Notes.GetByMatricule, NoteController.getStudentNotes);
 noteRouter.get(Paths.Notes.GetByCourse, NoteController.getNotesByCourse);
 noteRouter.get(Paths.Notes.ResultByMatricule, NoteController.getStudentResult);
+noteRouter.put(Paths.Notes.Update, NoteController.updateNote);
+noteRouter.delete(Paths.Notes.Delete, NoteController.deleteNote);
+noteRouter.get(Paths.Notes.GetById, NoteController.getNoteById);
 apiRouter.use(Paths.Notes._, noteRouter);
 
 // Resolutions

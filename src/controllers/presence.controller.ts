@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Presence } from '@src/models/Presence';
 import { Seance } from '@src/models/Seance';
 import { PresenceService } from '@src/services/presence.service';
@@ -75,6 +76,32 @@ export async function getPresencesBySeance(req: Request, res: Response) {
  */
 export async function updatePresence(req: Request, res: Response) {
   const { id } = req.params;
-  const updated = await Presence.findByIdAndUpdate(id, req.body as object, { new: true });
-  return res.status(HttpStatusCodes.OK).json(updated);
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(HttpStatusCodes.BAD_REQUEST).json({ success: false, error: 'Identifiant de présence invalide' });
+  }
+
+  const payload = req.body as { status?: unknown };
+  const updateData: { status?: string } = {};
+
+  if (typeof payload.status === 'string') {
+    updateData.status = payload.status.trim().toLowerCase();
+  }
+
+  if (!updateData.status) {
+    return res.status(HttpStatusCodes.BAD_REQUEST).json({
+      success: false,
+      error: 'Le champ "status" est requis pour la mise à jour',
+    });
+  }
+
+  const updated = await Presence.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!updated) {
+    return res.status(HttpStatusCodes.NOT_FOUND).json({ success: false, error: 'Présence non trouvée' });
+  }
+
+  return res.status(HttpStatusCodes.OK).json({ success: true, data: updated });
 }

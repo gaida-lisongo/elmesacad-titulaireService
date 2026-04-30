@@ -46,6 +46,7 @@ const presenceRouter = Router();
 presenceRouter.post(Paths.Presences.Check, PresenceController.checkPresence);
 presenceRouter.get(Paths.Presences.BySeance, PresenceController.getPresencesBySeance);
 presenceRouter.put(Paths.Presences.Update, PresenceController.updatePresence);
+presenceRouter.patch(Paths.Presences.Update, PresenceController.updatePresence);
 apiRouter.use(Paths.Presences._, presenceRouter);
 
 // Notes (chemins statiques et paramétrés sans `/:id` avant les routes littérales)

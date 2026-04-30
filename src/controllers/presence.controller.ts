@@ -18,18 +18,26 @@ export async function checkPresence(req: Request, res: Response) {
   const { matricule, email, seanceRef, latitude, longitude } = req.body as {
     matricule: string;
     email: string;
-    seanceRef: string;
+    seanceRef: string | unknown;
     latitude: number;
     longitude: number;
   };
 
-  const seance = await Seance.findById(seanceRef) as unknown as SeanceInput | null;
+  const normalizedSeanceRef = typeof seanceRef === 'string' ? seanceRef.trim() : '';
+  if (!mongoose.isValidObjectId(normalizedSeanceRef)) {
+    return res.status(HttpStatusCodes.BAD_REQUEST).json({
+      success: false,
+      message: 'Référence de séance invalide',
+    });
+  }
+
+  const seance = await Seance.findById(normalizedSeanceRef) as unknown as SeanceInput | null;
   if (!seance) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ success: false, message: 'Séance non trouvée' });
   }
 
   // Vérifier si déjà présent
-  const existing = await Presence.findOne({ matricule, seance: seanceRef });
+  const existing = await Presence.findOne({ matricule, seance: normalizedSeanceRef });
   if (existing && existing.status !== 'absent') {
     return res.status(HttpStatusCodes.CONFLICT).json({ success: false, message: 'Présence déjà enregistrée' });
   }
@@ -44,7 +52,7 @@ export async function checkPresence(req: Request, res: Response) {
     matricule,
     email,
     matiere: seance.lecon,
-    seance: seanceRef,
+    seance: normalizedSeanceRef,
     localisation: { 
       type: 'Point', 
       coordinates: [longitude, latitude] // MongoDB attend [longitude, latitude]

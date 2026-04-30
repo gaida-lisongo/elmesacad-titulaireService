@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Resolution } from '@src/models/Resolution';
 import { Activite } from '@src/models/Activite';
 import { ResolutionService } from '@src/services/resolution.service';
@@ -47,4 +48,28 @@ export async function submitResolution(req: Request, res: Response) {
 export async function getAllResolutions(_: Request, res: Response) {
   const resolutions = await Resolution.find().populate('activite_id');
   return res.status(HttpStatusCodes.OK).json(resolutions);
+}
+
+export async function updateResolutionNote(req: Request, res: Response) {
+  const { id } = req.params;
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(HttpStatusCodes.BAD_REQUEST).json({ error: 'Identifiant de résolution invalide' });
+  }
+
+  const { note } = req.body as { note?: unknown };
+  if (typeof note !== 'number' || Number.isNaN(note)) {
+    return res.status(HttpStatusCodes.BAD_REQUEST).json({ error: 'La note est requise et doit être un nombre' });
+  }
+
+  const updated = await Resolution.findByIdAndUpdate(
+    id,
+    { note },
+    { new: true, runValidators: true },
+  ).populate('activite_id');
+
+  if (!updated) {
+    return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Résolution non trouvée' });
+  }
+
+  return res.status(HttpStatusCodes.OK).json(updated);
 }

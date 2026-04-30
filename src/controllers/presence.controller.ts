@@ -18,7 +18,7 @@ export async function checkPresence(req: Request, res: Response) {
   const { matricule, email, seanceRef, latitude, longitude } = req.body as {
     matricule: string;
     email: string;
-    seanceRef: string | unknown;
+    seanceRef: unknown;
     latitude: number;
     longitude: number;
   };

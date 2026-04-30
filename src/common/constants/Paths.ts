@@ -40,10 +40,12 @@ const Paths = {
     _: '/resolutions',
     Submit: '/submit',
     All: '/all',
+    UpdateNote: '/update-note/:id',
   },
   Activites: {
     _: '/activites',
     Add: '/add',
+    GetById: '/:id',
     ByCharge: '/charge/:chargeId',
     Delete: '/delete/:id',
   },

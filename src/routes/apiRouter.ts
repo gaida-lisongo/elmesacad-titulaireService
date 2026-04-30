@@ -19,6 +19,7 @@ const apiRouter = Router();
 // Activités
 const activiteRouter = Router();
 activiteRouter.post(Paths.Activites.Add, ActiviteController.addActivite);
+activiteRouter.get(Paths.Activites.GetById, ActiviteController.getActiviteById);
 activiteRouter.get(Paths.Activites.ByCharge, ActiviteController.getActivitesByCharge);
 activiteRouter.delete(Paths.Activites.Delete, ActiviteController.deleteActivite);
 apiRouter.use(Paths.Activites._, activiteRouter);
@@ -66,6 +67,8 @@ apiRouter.use(Paths.Notes._, noteRouter);
 const resolutionRouter = Router();
 resolutionRouter.post(Paths.Resolutions.Submit, ResolutionController.submitResolution);
 resolutionRouter.get(Paths.Resolutions.All, ResolutionController.getAllResolutions);
+resolutionRouter.put(Paths.Resolutions.UpdateNote, ResolutionController.updateResolutionNote);
+resolutionRouter.patch(Paths.Resolutions.UpdateNote, ResolutionController.updateResolutionNote);
 apiRouter.use(Paths.Resolutions._, resolutionRouter);
 
 // ----------------------- Add UserRouter --------------------------------- //

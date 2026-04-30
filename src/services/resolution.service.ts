@@ -26,4 +26,12 @@ export class ResolutionService {
     const score = (correctAnswers / totalQuestions) * activite.note_maximale;
     return score;
   }
+
+  /**
+   * Corrige automatiquement un QCM et renvoie la note arrondie à 2 décimales.
+   */
+  public static corrigerQcmAutomatiquement(resolution: IResolution, activite: IActivite): number {
+    const brute = this.calculerNoteQCM(resolution, activite);
+    return Math.round(brute * 100) / 100;
+  }
 }

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { Activite } from '@src/models/Activite';
+import { ActiviteService } from '@src/services/activite.service';
 import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
 
 export async function addActivite(req: Request, res: Response) {
@@ -17,7 +18,7 @@ export async function addActivite(req: Request, res: Response) {
 export async function getActivitesByCharge(req: Request, res: Response) {
   const { chargeId } = req.params;
   const activites = await Activite.find({ charge_horaire: chargeId }).lean();
-  return res.status(HttpStatusCodes.OK).json(activites);
+  return res.status(HttpStatusCodes.OK).json(activites.map((a) => ActiviteService.sanitizeForStudent(a)));
 }
 
 export async function getActiviteById(req: Request, res: Response) {
@@ -29,7 +30,7 @@ export async function getActiviteById(req: Request, res: Response) {
   if (!activite) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Activité non trouvée' });
   }
-  return res.status(HttpStatusCodes.OK).json(activite);
+  return res.status(HttpStatusCodes.OK).json(ActiviteService.sanitizeForStudent(activite));
 }
 
 export async function deleteActivite(req: Request, res: Response) {

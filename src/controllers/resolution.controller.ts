@@ -17,6 +17,10 @@ export async function submitResolution(req: Request, res: Response) {
 
   const { email, matricule, matiere, activite_id, reponses_qcm, reponses_tp } = body;
 
+  if (!mongoose.isValidObjectId(activite_id)) {
+    return res.status(HttpStatusCodes.BAD_REQUEST).json({ error: 'Identifiant activité invalide' });
+  }
+
   // 1. Récupérer l'activité liée
   const activite = await Activite.findById(activite_id);
   if (!activite) {
@@ -36,7 +40,7 @@ export async function submitResolution(req: Request, res: Response) {
 
   // 3. Calculer la note si c'est un QCM
   if (activite.categorie === 'QCM') {
-    resolution.note = ResolutionService.calculerNoteQCM(resolution, activite);
+    resolution.note = ResolutionService.corrigerQcmAutomatiquement(resolution, activite);
   }
 
   // 4. Sauvegarder

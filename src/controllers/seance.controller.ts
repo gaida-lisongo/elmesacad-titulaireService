@@ -15,7 +15,9 @@ export async function getAllSeances(_: Request, res: Response) {
 
 export async function getSeancesByCharge(req: Request, res: Response) {
   const { chargeId } = req.params;
-  const seances = await Seance.find({ charge_horaire: chargeId }).lean();
+  console.log("Charge ID: ", chargeId);
+  const seances = await Seance.find({ charge_horaire: chargeId }).populate('charge_horaire').lean();
+  console.log("Seances: ", seances);
   return res.status(HttpStatusCodes.OK).json(seances);
 }
 

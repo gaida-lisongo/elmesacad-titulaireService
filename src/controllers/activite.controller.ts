@@ -15,6 +15,11 @@ export async function addActivite(req: Request, res: Response) {
   }
 }
 
+export async function getAllActivites(_: Request, res: Response) {
+  const activites = await Activite.find().lean();
+  return res.status(HttpStatusCodes.OK).json(activites.map((a) => ActiviteService.sanitizeForStudent(a)));
+}
+
 export async function getActivitesByCharge(req: Request, res: Response) {
   const { chargeId } = req.params;
   const activites = await Activite.find({ charge_horaire: chargeId }).lean();

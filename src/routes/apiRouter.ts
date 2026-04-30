@@ -19,8 +19,9 @@ const apiRouter = Router();
 // Activités
 const activiteRouter = Router();
 activiteRouter.post(Paths.Activites.Add, ActiviteController.addActivite);
-activiteRouter.get(Paths.Activites.GetById, ActiviteController.getActiviteById);
+activiteRouter.get(Paths.Activites.All, ActiviteController.getAllActivites);
 activiteRouter.get(Paths.Activites.ByCharge, ActiviteController.getActivitesByCharge);
+activiteRouter.get(Paths.Activites.GetById, ActiviteController.getActiviteById);
 activiteRouter.delete(Paths.Activites.Delete, ActiviteController.deleteActivite);
 apiRouter.use(Paths.Activites._, activiteRouter);
 

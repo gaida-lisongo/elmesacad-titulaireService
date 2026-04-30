@@ -45,6 +45,7 @@ const Paths = {
   Activites: {
     _: '/activites',
     Add: '/add',
+    All: '/all',
     GetById: '/:id',
     ByCharge: '/charge/:chargeId',
     Delete: '/delete/:id',

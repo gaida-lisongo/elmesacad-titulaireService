@@ -88,19 +88,19 @@ function variantCopy(variant: NotifyGradeVariant, matiere: string) {
       return {
         subject: `Résultat de votre QCM — ${matiere} — INBTP`,
         headerTitle: 'INBTP — Résultat QCM',
-        intro: `Votre QCM pour la matière <strong>${m}</strong> a été corrigé automatiquement.`,
+        intro: `Votre QCM pour la commande Ref.commande: <strong>${m}</strong> a été corrigé automatiquement.`,
       };
     case 'manual_qcm':
       return {
         subject: `Mise à jour de votre note (QCM) — ${matiere} — INBTP`,
         headerTitle: 'INBTP — Note QCM',
-        intro: `Votre QCM pour la matière <strong>${m}</strong> a été corrigé. Voici votre note.`,
+        intro: `Votre QCM pour la commande Ref.commande: <strong>${m}</strong> a été corrigé. Voici votre note.`,
       };
     case 'manual_tp':
       return {
         subject: `Note de votre TP — ${matiere} — INBTP`,
         headerTitle: 'INBTP — Résultat TP',
-        intro: `Votre travail pratique pour la matière <strong>${m}</strong> a été corrigé. Voici votre note.`,
+        intro: `Votre travail pratique pour la commande Ref.commande: <strong>${m}</strong> a été corrigé. Voici votre note.`,
       };
   }
 }

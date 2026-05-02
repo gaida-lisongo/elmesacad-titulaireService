@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { Resolution } from '@src/models/Resolution';
-import { Activite } from '@src/models/Activite';
+import { Activite, type IActivite } from '@src/models/Activite';
 import { ResolutionService } from '@src/services/resolution.service';
+import { EmailService } from '@src/services/email.service';
 import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
 
 export async function submitResolution(req: Request, res: Response) {
@@ -46,6 +47,22 @@ export async function submitResolution(req: Request, res: Response) {
   // 4. Sauvegarder
   await resolution.save();
 
+  if (activite.categorie === 'QCM' && typeof resolution.note === 'number') {
+    const studentEmail = (email ?? '').trim();
+    if (studentEmail) {
+      try {
+        await EmailService.notifyQcmNote(
+          studentEmail,
+          matiere,
+          resolution.note,
+          activite.note_maximale,
+        );
+      } catch {
+        // Déjà journalisé dans EmailService — la soumission reste valide
+      }
+    }
+  }
+
   return res.status(HttpStatusCodes.CREATED).json(resolution);
 }
 
@@ -73,6 +90,29 @@ export async function updateResolutionNote(req: Request, res: Response) {
 
   if (!updated) {
     return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Résolution non trouvée' });
+  }
+
+  const activite = updated.activite_id as unknown as IActivite;
+  const studentEmail = (updated.email ?? '').trim();
+  if (
+    studentEmail &&
+    activite &&
+    typeof activite === 'object' &&
+    (activite.categorie === 'QCM' || activite.categorie === 'TP')
+  ) {
+    const variant =
+      activite.categorie === 'QCM' ? ('manual_qcm' as const) : ('manual_tp' as const);
+    try {
+      await EmailService.notifyStudentGrade({
+        to: studentEmail,
+        matiere: updated.matiere ?? '',
+        note,
+        noteMaximale: activite.note_maximale,
+        variant,
+      });
+    } catch {
+      // Déjà journalisé dans EmailService — la mise à jour reste valide
+    }
   }
 
   return res.status(HttpStatusCodes.OK).json(updated);

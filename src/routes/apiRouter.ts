@@ -68,6 +68,7 @@ apiRouter.use(Paths.Notes._, noteRouter);
 const resolutionRouter = Router();
 resolutionRouter.post(Paths.Resolutions.Submit, ResolutionController.submitResolution);
 resolutionRouter.get(Paths.Resolutions.All, ResolutionController.getAllResolutions);
+resolutionRouter.get(Paths.Resolutions.ByActiviteAndEmail, ResolutionController.getResolutionByActiviteAndEmail);
 resolutionRouter.put(Paths.Resolutions.UpdateNote, ResolutionController.updateResolutionNote);
 resolutionRouter.patch(Paths.Resolutions.UpdateNote, ResolutionController.updateResolutionNote);
 apiRouter.use(Paths.Resolutions._, resolutionRouter);

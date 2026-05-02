@@ -3,8 +3,28 @@ import mongoose from 'mongoose';
 import { Resolution } from '@src/models/Resolution';
 import { Activite, type IActivite } from '@src/models/Activite';
 import { ResolutionService } from '@src/services/resolution.service';
+import { ActiviteService } from '@src/services/activite.service';
 import { EmailService } from '@src/services/email.service';
 import HttpStatusCodes from '@src/common/constants/HttpStatusCodes';
+
+function escapeRegExpChars(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function normalizeEmail(raw: unknown): string {
+  return typeof raw === 'string' ? raw.trim().toLowerCase() : '';
+}
+
+function isPopulatedActivite(a: unknown): a is Pick<IActivite, 'qcm'> & Record<string, unknown> {
+  return (
+    !!a &&
+    typeof a === 'object' &&
+    !Array.isArray(a) &&
+    'categorie' in a &&
+    ((a as { categorie?: string }).categorie === 'QCM' ||
+      (a as { categorie?: string }).categorie === 'TP')
+  );
+}
 
 export async function submitResolution(req: Request, res: Response) {
   const body = req.body as {
@@ -69,6 +89,39 @@ export async function submitResolution(req: Request, res: Response) {
 export async function getAllResolutions(_: Request, res: Response) {
   const resolutions = await Resolution.find().populate('activite_id');
   return res.status(HttpStatusCodes.OK).json(resolutions);
+}
+
+export async function getResolutionByActiviteAndEmail(req: Request, res: Response) {
+  const { activiteId } = req.params;
+  const email = normalizeEmail(req.query.email);
+
+  if (!mongoose.isValidObjectId(activiteId)) {
+    return res.status(HttpStatusCodes.BAD_REQUEST).json({ error: 'Identifiant activité invalide' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    return res
+      .status(HttpStatusCodes.BAD_REQUEST)
+      .json({ error: 'Paramètre query « email » requis et doit être une adresse valide' });
+  }
+
+  const resolutionDoc = await Resolution.findOne({
+    activite_id: activiteId,
+    email: { $regex: new RegExp(`^${escapeRegExpChars(email)}$`, 'i') },
+  }).populate('activite_id');
+
+  if (!resolutionDoc) {
+    return res.status(HttpStatusCodes.NOT_FOUND).json({ error: 'Résolution non trouvée pour cette activité et ce courriel' });
+  }
+
+  const payload = resolutionDoc.toObject();
+  const act = payload.activite_id;
+  if (isPopulatedActivite(act)) {
+    (payload as { activite_id: unknown }).activite_id = ActiviteService.sanitizeForStudent(act);
+  }
+
+  return res.status(HttpStatusCodes.OK).json(payload);
 }
 
 export async function updateResolutionNote(req: Request, res: Response) {

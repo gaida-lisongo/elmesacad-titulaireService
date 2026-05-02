@@ -40,6 +40,7 @@ const Paths = {
     _: '/resolutions',
     Submit: '/submit',
     All: '/all',
+    ByActiviteAndEmail: '/by-activite/:activiteId',
     UpdateNote: '/update-note/:id',
   },
   Activites: {
